@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sleep & Health Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Predict Sleep Quality & Heart Rate</h1>
+
+        <form id="predictForm">
+            <label>Age:</label>
+            <input type="number" name="age" required>
+
+            <label>Sleep Duration (hours):</label>
+            <input type="number" step="0.1" name="sleep_duration" required>
+
+            <label>Physical Activity (minutes/day):</label>
+            <input type="number" name="activity" required>
+
+            <label>Stress Level (1–10):</label>
+            <input type="number" step="0.1" name="stress" required>
+
+            <label>Daily Steps:</label>
+            <input type="number" name="steps" required>
+
+            <button type="submit">Predict</button>
+        </form>
+
+        <!-- Modal Popup -->
+        <div class="modal-overlay" id="modal" style="display:none;">
+            <div class="modal-content">
+                <h2>✅ Prediction Results</h2>
+                <p><strong>Predicted Sleep Quality:</strong> <span id="result-sleep"></span></p>
+                <p><strong>Predicted Heart Rate:</strong> <span id="result-hr"></span> bpm</p>
+                <p><strong>Status:</strong> <span id="result-status"></span></p>
+                <p><strong>Health Tip:</strong> <span id="result-tip"></span></p>
+                <button onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("predictForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            fetch("/predict", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result-sleep").textContent = data.sleep_quality;
+                document.getElementById("result-hr").textContent = data.heart_rate;
+                document.getElementById("result-tip").textContent = data.tip;
+
+                let emoji = "🙂";
+                if (data.sleep_quality >= 8) emoji = "😁 Excellent";
+                else if (data.sleep_quality < 5) emoji = "😴 Poor";
+                document.getElementById("result-status").textContent = emoji;
+
+                document.getElementById("modal").style.display = "flex";
+            })
+            .catch(error => console.error("Prediction error:", error));
+        });
+
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+    </script>
+</body>
+</html>
